@@ -9,10 +9,6 @@ class PatientInfoSpider(Spider):
     authors = {}
     replies = {}
 
-    # start_urls = [
-    #     'https://patient.info/forums/discuss/new-to-olanzapine-from-originally-quetiapine-then-clopixal-at-present-246800?page=1',
-    # ]
-
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super(PatientInfoSpider, cls).from_crawler(crawler, *args, **kwargs)
@@ -58,6 +54,11 @@ class PatientInfoSpider(Spider):
                                   callback=self.parse_author_discussions,
                                   cb_kwargs=dict(post_link=plink))
             break
+
+        next_link = response.css('a.reply__control').xpath(
+            "//span[text()='Next']/parent::a/@href").get()
+        if next_link is not None:
+            yield response.follow(next_link, callback=self.parse_post_list)
 
     def parse_author_discussions(self, response, post_link):
         posts = response.css('#main-body > ol > li')
@@ -131,6 +132,3 @@ class PatientInfoSpider(Spider):
 
         # print(item)
         return item
-
-    # def parse(self, response):
-    #     return self.parse_post(response)
