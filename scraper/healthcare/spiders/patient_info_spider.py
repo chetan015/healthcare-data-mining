@@ -7,6 +7,7 @@ class PatientInfoSpider(Spider):
 
     name = 'patient_info'
     authors = {}
+    replies = {}
 
     # start_urls = [
     #     'https://patient.info/forums/discuss/new-to-olanzapine-from-originally-quetiapine-then-clopixal-at-present-246800?page=1',
@@ -42,7 +43,12 @@ class PatientInfoSpider(Spider):
         # Get profiles of all authors for the group.
         author_links = post.css('.post__actions.post__user a::attr(href)').getall()
         # Get all post links for the group.
-        post_links = post.css('.post__title > a')
+        post_links = post.css('.post__title > a::attr(href)').getall()
+
+        # Testing
+        # author_links = ['https://patient.info/forums/profiles/talos-1069042']
+        # post_links = ['https://patient.info/forums/discuss/do-my-turbinates-look-normal--602417']
+
         for alink, plink in zip(author_links, post_links):
             author_id = alink.split('/')[-1]
             author = self.authors.get(author_id, {})
@@ -67,7 +73,35 @@ class PatientInfoSpider(Spider):
             }
 
         self.authors[author_id] = author
-        yield response.follow(post_link, callback=self.parse_post)
+        yield response.follow(post_link + '?order=mostvotes', callback=self.parse_post_replies)
+
+    def parse_post_replies(self, response):
+        post_id = response.css('.post__main > .post').attrib['data-d']
+        self.replies[post_id] = self.replies.get(post_id, [])
+
+        replies = response.css('ul.comments > li > article.post')
+        for r in replies:
+            author_id = r.css('.author__name').attrib['href'].split('/')[-1]
+            likes = int(r.css('.post__actions > .post__like > .post__count::text').get('0'))
+            author = self.authors.get(author_id, {})
+            author['replies'] = author.get('replies', {})
+            author['replies']['likeCounts'] = author['replies'].get('likeCounts', [])
+            author['replies']['likeCounts'].append(likes)
+            self.authors[author_id] = author
+
+            self.replies[post_id].append({
+                'author': author_id,
+                'created': r.css('.post__header time').attrib['datetime'],
+                'content': r.css('.moderation-conent').attrib['value'],
+                'numLikes': likes
+            })
+
+        next_link = response.css('a.reply__control').xpath(
+            "//span[text()='Next']/parent::a/@href").get()
+        if next_link is not None:
+            yield response.follow(next_link, callback=self.parse_post_replies)
+        else:
+            yield self.parse_post(response)
 
     def parse_post(self, response):
         post = response.css('.post__main > .post')
@@ -75,7 +109,7 @@ class PatientInfoSpider(Spider):
 
         item = {
             'id': post.attrib['data-d'],
-            'link': response.url,
+            'link': response.url.split('?')[0],
             'heading': post.css('.post__title::text').get(),
             'author': post.css('.author__name').attrib['href'].split('/')[-1],
             'content': ' '.join(post_content.css('p:not(.post__stats)::text').getall()),
@@ -91,26 +125,11 @@ class PatientInfoSpider(Spider):
             post.css('.post__header+.post__stats > span:last-child').re(r'(\d+) user.* following')
             [0])
 
-        replies = response.css('ul.comments > li > article.post')
-        item['replies'] = []
-        for r in replies:
-            author_id = r.css('.author__name').attrib['href'].split('/')[-1]
-            likes = int(r.css('.post__actions > .post__like > .post__count::text').get('0'))
-            author = self.authors.get(author_id, {})
-            author['replies'] = author.get('replies', {})
-            author['replies']['likeCounts'] = author['replies'].get('likeCounts', [])
-            author['replies']['likeCounts'].append(likes)
-            self.authors[author_id] = author
-
-            item['replies'].append({
-                'author': author_id,
-                'created': r.css('.post__header time').attrib['datetime'],
-                'content': r.css('.moderation-conent').attrib['value'],
-                'numLikes': likes
-            })
+        item['replies'] = self.replies[item['id']]
+        del self.replies[item['id']]  # clear up some memory
 
         # print(item)
-        yield item
+        return item
 
     # def parse(self, response):
     #     return self.parse_post(response)
