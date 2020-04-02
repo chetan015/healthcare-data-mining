@@ -66,11 +66,13 @@ class PatientInfoSpider(scrapy.Spider):
             'content': ' '.join(post_content.css('p:not(.post__stats)::text').getall()),
         }
 
-        likes, replies = post_content.css('.post__stats').re(r'(\d+) like.?, (\d+) repl')
-        item['replies'], item['likes'] = int(replies), int(likes)
-
         # Since the time shown on item page is the time of last reply, we are getting the time
         # of creation from the author's profile
         item['created'] = self.authors[item['author']]['discussions'][item['id']]['created']
+
+        likes, replies = post_content.css('.post__stats').re(r'(\d+) like.?, (\d+) repl')
+        item['replies'], item['likes'] = int(replies), int(likes)
+        item['following'] = post.css('.post__header+.post__stats > span:last-child').re(
+            r'(\d+) user.* following')[0]
 
         yield item
