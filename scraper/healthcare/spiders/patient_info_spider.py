@@ -7,6 +7,10 @@ class PatientInfoSpider(scrapy.Spider):
     name = 'patient_info'
     authors = {}
 
+    # start_urls = [
+    #     'https://patient.info/forums/discuss/new-to-olanzapine-from-originally-quetiapine-then-clopixal-at-present-246800?page=1',
+    # ]
+
     def start_requests(self):
         url_prefix = 'https://patient.info/forums/index-'
         # Get all medical groups from index pages starting with letter A to Z
@@ -23,7 +27,7 @@ class PatientInfoSpider(scrapy.Spider):
             break
 
     def parse_post_list(self, response):
-        post = response.css('article.post.item')
+        post = response.css('article.post')
         # Get profiles of all authors for the group.
         author_links = post.css('.post__actions.post__user a::attr(href)').getall()
         # Get all post links for the group.
@@ -71,8 +75,23 @@ class PatientInfoSpider(scrapy.Spider):
         item['created'] = self.authors[item['author']]['discussions'][item['id']]['created']
 
         likes, replies = post_content.css('.post__stats').re(r'(\d+) like.?, (\d+) repl')
-        item['replies'], item['likes'] = int(replies), int(likes)
-        item['following'] = post.css('.post__header+.post__stats > span:last-child').re(
-            r'(\d+) user.* following')[0]
+        item['numReplies'], item['numLikes'] = int(replies), int(likes)
+        item['numFollowing'] = int(
+            post.css('.post__header+.post__stats > span:last-child').re(r'(\d+) user.* following')
+            [0])
 
+        replies = response.css('ul.comments > li > article.post')
+        item['replies'] = []
+        for r in replies:
+            item['replies'].append({
+                'author': r.css('.author__name').attrib['href'].split('/')[-1],
+                'created': r.css('.post__header time').attrib['datetime'],
+                'content': r.css('.moderation-conent').attrib['value'],
+                'likes': int(r.css('.post__actions > .post__like > .post__count::text').get('0'))
+            })
+
+        # print(item)
         yield item
+
+    # def parse(self, response):
+    #     return self.parse_post(response)
