@@ -1,3 +1,4 @@
+import json
 import string
 
 from scrapy import Request, Spider, signals
@@ -17,7 +18,9 @@ class PatientInfoSpider(Spider):
 
     def spider_closed(self, spider):
         spider.logger.info('Spider closed: %s', spider.name)
-        spider.logger.info(spider.authors)
+        # spider.logger.info(spider.authors)
+        with open('authors.json', 'w') as f:
+            json.dump(spider.authors, f)
 
     def start_requests(self):
         url_prefix = 'https://patient.info/forums/index-'
