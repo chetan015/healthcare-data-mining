@@ -110,6 +110,7 @@ class PatientInfoSpider(Spider):
         item = {
             'id': post.attrib['data-d'],
             'link': response.url.split('?')[0],
+            'group': response.css('header .breadcrumb-item:last-child span::text').get().strip(),
             'heading': post.css('.post__title::text').get(),
             'author': post.css('.author__name').attrib['href'].split('/')[-1],
             'content': ' '.join(post_content.css('p:not(.post__stats)::text').getall()),
