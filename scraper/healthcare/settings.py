@@ -14,7 +14,6 @@ BOT_NAME = "healthcare"
 SPIDER_MODULES = ["healthcare.spiders"]
 NEWSPIDER_MODULE = "healthcare.spiders"
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'healthcare (+http://www.yourdomain.com)'
 
@@ -88,3 +87,6 @@ ROBOTSTXT_OBEY = False
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+LOG_LEVEL = 'INFO'
+HTTPERROR_ALLOWED_CODES = [404]

@@ -64,19 +64,21 @@ class PatientInfoSpider(Spider):
             yield response.follow(next_link, callback=self.parse_post_list)
 
     def parse_author_discussions(self, response, post_link):
-        posts = response.css('#main-body > ol > li')
+        # If discussions tab exists for author, scrape it otherwise directly go to post
+        if response.status != 404:
+            posts = response.css('#main-body > ol > li')
+            author_id = response.url.split('/')[-2]
+            author = self.authors.get(author_id, {})
+            author['discussions'] = {}
+            for post in posts:
+                post_id = post.css('h3 > a').attrib['href'].split('-')[-1]
+                author['discussions'][post_id] = {
+                    'created': post.css('.commented-on > time').attrib['datetime']
+                }
+            self.authors[author_id] = author
+        else:
+            self.crawler.stats.inc_value('failed_url_count')
 
-        author_id = response.url.split('/')[-2]
-        author = self.authors.get(author_id, {})
-        author['discussions'] = {}
-
-        for post in posts:
-            post_id = post.css('h3 > a').attrib['href'].split('-')[-1]
-            author['discussions'][post_id] = {
-                'created': post.css('.commented-on > time').attrib['datetime']
-            }
-
-        self.authors[author_id] = author
         yield response.follow(post_link + '?order=mostvotes', callback=self.parse_post_replies)
 
     def parse_post_replies(self, response):
@@ -120,15 +122,16 @@ class PatientInfoSpider(Spider):
             'content': ' '.join(post_content.css('p:not(.post__stats)::text').getall()),
         }
 
-        # Since the time shown on item page is the time of last reply, we are getting the time
-        # of creation from the author's profile
-        item['created'] = self.authors[item['author']]['discussions'][item['id']]['created']
-
         likes, replies = post_content.css('.post__stats').re(r'(\d+) like.?, (\d+) repl')
         item['numReplies'], item['numLikes'] = int(replies), int(likes)
-        item['numFollowing'] = int(
-            post.css('.post__header+.post__stats > span:last-child').re(r'(\d+) user.* following')
-            [0])
+
+        post_stats = post.css('.post__header+.post__stats')
+        item['numFollowing'] = int(post_stats.re(r'(\d+) user.* following')[0])
+
+        item['created'] = post_stats.xpath("//span[contains(text(),'Posted')]/time/@datetime").get()
+        if item['created'] is None:
+            # If posted time is not available on the post page, try to get it from user's profile
+            item['created'] = self.authors[item['author']]['discussions'][item['id']]['created']
 
         item['replies'] = self.replies[item['id']]
         del self.replies[item['id']]  # clear up some memory
