@@ -1,8 +1,9 @@
-import scrapy
 import string
 
+from scrapy import Request, Spider, signals
 
-class PatientInfoSpider(scrapy.Spider):
+
+class PatientInfoSpider(Spider):
 
     name = 'patient_info'
     authors = {}
@@ -11,11 +12,21 @@ class PatientInfoSpider(scrapy.Spider):
     #     'https://patient.info/forums/discuss/new-to-olanzapine-from-originally-quetiapine-then-clopixal-at-present-246800?page=1',
     # ]
 
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(PatientInfoSpider, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        return spider
+
+    def spider_closed(self, spider):
+        spider.logger.info('Spider closed: %s', spider.name)
+        spider.logger.info(spider.authors)
+
     def start_requests(self):
         url_prefix = 'https://patient.info/forums/index-'
         # Get all medical groups from index pages starting with letter A to Z
         for l in string.ascii_lowercase:
-            yield scrapy.Request(url=url_prefix + l, callback=self.parse_group_list)
+            yield Request(url=url_prefix + l, callback=self.parse_group_list)
             break
 
     def parse_group_list(self, response):
@@ -83,11 +94,19 @@ class PatientInfoSpider(scrapy.Spider):
         replies = response.css('ul.comments > li > article.post')
         item['replies'] = []
         for r in replies:
+            author_id = r.css('.author__name').attrib['href'].split('/')[-1]
+            likes = int(r.css('.post__actions > .post__like > .post__count::text').get('0'))
+            author = self.authors.get(author_id, {})
+            author['replies'] = author.get('replies', {})
+            author['replies']['likeCounts'] = author['replies'].get('likeCounts', [])
+            author['replies']['likeCounts'].append(likes)
+            self.authors[author_id] = author
+
             item['replies'].append({
-                'author': r.css('.author__name').attrib['href'].split('/')[-1],
+                'author': author_id,
                 'created': r.css('.post__header time').attrib['datetime'],
                 'content': r.css('.moderation-conent').attrib['value'],
-                'likes': int(r.css('.post__actions > .post__like > .post__count::text').get('0'))
+                'numLikes': likes
             })
 
         # print(item)
