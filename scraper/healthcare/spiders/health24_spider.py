@@ -17,18 +17,8 @@ class Health24Spider(Spider):
         'Anti-ageing expert': 'Dermatology',
     }
 
-    @classmethod
-    def from_crawler(cls, crawler, *args, **kwargs):
-        spider = super(Health24Spider, cls).from_crawler(crawler, *args, **kwargs)
-        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
-        return spider
-
-    def spider_closed(self, spider):
-        spider.logger.info('Spider closed: %s', spider.name)
-
     def start_requests(self):
-        start_url = 'https://www.health24.com/Experts/All'
-        yield Request(url=start_url, callback=self.parse_expert_list)
+        yield Request(url='https://www.health24.com/Experts/All', callback=self.parse_expert_list)
 
     def parse_expert_list(self, response):
         expert_links = response.xpath(
@@ -39,16 +29,17 @@ class Health24Spider(Spider):
 
     def parse_expert(self, response):
         group_name = response.css('#lnkCategoryHeading::text').get()
-        galias = response.css('.subcat_header > h1::text').get()
+        group_alias = response.css('.subcat_header > h1::text').get()
         if group_name is None:
-            if galias in self.group_renames:
-                print(group_name, '#', galias, '#', self.group_renames.get(galias))
-                group_name = self.group_renames.get(galias)
+            if group_alias in self.group_renames:
+                # print(group_name, '#', group_alias, '#', self.group_renames.get(group_alias))
+                group_name = self.group_renames.get(group_alias)
             else:
-                print('########################', group_name, '#', galias)
+                # CyberDoc, CyberShrink, etc groups do not really fall into any proper category
+                print('IGNORED GROUP', group_name, '#', group_alias)
                 return
         else:
-            print(group_name, '#', galias, '#', self.group_renames.get(group_name, group_name))
+            # print(group_name, '#', group_alias, '#', self.group_renames.get(group_name, group_name))
             group_name = self.group_renames.get(group_name, group_name)
 
         expert_id = response.css('#expertType').attrib['value']
