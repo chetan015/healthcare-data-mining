@@ -88,5 +88,10 @@ ROBOTSTXT_OBEY = False
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-LOG_LEVEL = 'INFO'
 HTTPERROR_ALLOWED_CODES = [404]
+
+LOG_LEVEL = 'INFO'
+
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
+COOKIES_ENABLED = True
+# COOKIES_DEBUG = True
