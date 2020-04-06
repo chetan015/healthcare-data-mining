@@ -90,10 +90,12 @@ class Health24Spider(Spider):
             'created': posted,
             'heading': post.css('h2:last-of-type::text').get(),
             'content': ' '.join(post.css('p::text').getall()),
+            'numReplies': 0
         }
 
         expert_reply = response.css('#expertAnswer')
         if expert_reply:
+            item['numReplies'] = 1
             item['replies'] = [{
                 'author': expert_reply.css('#lnkExpert::text').get(),
                 # ignore leading extra chars
