@@ -19,7 +19,7 @@ class PatientInfoSpider(Spider):
     def spider_closed(self, spider):
         spider.logger.info('Spider closed: %s', spider.name)
         # spider.logger.info(spider.authors)
-        with open('authors.json', 'w') as f:
+        with open(self.name + '_authors.json', 'w') as f:
             json.dump(spider.authors, f)
 
     def start_requests(self):
