@@ -47,14 +47,12 @@ class MedHelpSpider(Spider):
         # communities = ['https://medhelp.org/forums/Allergy/show/67']
         for a in communities:
             yield response.follow(a, callback=self.parse_post_list_initial)
-            break
 
     # Initial page that you see when you open a community
     def parse_post_list_initial(self, response):
         posts = response.css('.subj_title > a')
         for a in posts:
             yield response.follow(a, callback=self.parse_post_replies)
-            break
 
         next_page = response.css('.vertical_scroll_link::attr(href)').get()
         if next_page is not None:
@@ -72,7 +70,6 @@ class MedHelpSpider(Spider):
         posts = Selector(text=self.clean_response_html(html[0])).css('.subj_title > a')
         for a in posts:
             yield response.follow(a, callback=self.parse_post_replies)
-            break
 
         # Extract link for the Next Page
         forum = response.url.split('/')[4]
@@ -114,7 +111,6 @@ class MedHelpSpider(Spider):
         self.replies[post_id] += replies
         for a in authors:
             yield response.follow(a.attrib['href'], callback=self.parse_author)
-            break
 
         next_page = response.css('.vertical_scroll_link::attr(href)').get()
         if next_page is not None:
@@ -138,7 +134,6 @@ class MedHelpSpider(Spider):
         self.replies[post_id] += replies
         for a in authors:
             yield response.follow(a, callback=self.parse_author)
-            break
 
         # Extract link for the Next Page of replies
         url_parts = response.url.split('/')
