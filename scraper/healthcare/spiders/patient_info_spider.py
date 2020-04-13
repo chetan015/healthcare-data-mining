@@ -27,7 +27,6 @@ class PatientInfoSpider(Spider):
         # Get all medical groups from index pages starting with letter A to Z
         for l in string.ascii_lowercase:
             yield Request(url=url_prefix + l, callback=self.parse_group_list)
-            break
 
     def parse_group_list(self, response):
         # Get all the links from the groups table.
@@ -35,7 +34,6 @@ class PatientInfoSpider(Spider):
         group_links = response.css('.disc-forums.disc-a-z > table a')
         for link in group_links:
             yield response.follow(link, callback=self.parse_post_list)
-            break
 
     def parse_post_list(self, response):
         post = response.css('article.post')
@@ -56,7 +54,6 @@ class PatientInfoSpider(Spider):
             yield response.follow(alink + '/discussions',
                                   callback=self.parse_author_discussions,
                                   cb_kwargs=dict(post_link=plink))
-            break
 
         next_link = response.css('a.reply__control').xpath(
             "//span[text()='Next']/parent::a/@href").get()
@@ -98,7 +95,7 @@ class PatientInfoSpider(Spider):
             self.replies[post_id].append({
                 'author': author_id,
                 'created': r.css('.post__header time').attrib['datetime'],
-                'content': r.css('.moderation-conent').attrib['value'],
+                'content': r.css('.moderation-conent::attr(value)').get(''),
                 'numLikes': likes
             })
 
@@ -126,7 +123,9 @@ class PatientInfoSpider(Spider):
         item['numReplies'], item['numLikes'] = int(replies), int(likes)
 
         post_stats = post.css('.post__header+.post__stats')
-        item['numFollowing'] = int(post_stats.re(r'(\d+) user.* following')[0])
+        item['numFollowing'] = 0
+        if item['numReplies'] > 0:
+            item['numFollowing'] = int(post_stats.re(r'(\d+) user.* following')[0])
 
         item['created'] = post_stats.xpath("//span[contains(text(),'Posted')]/time/@datetime").get()
         if item['created'] is None:
