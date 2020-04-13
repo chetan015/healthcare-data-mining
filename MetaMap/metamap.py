@@ -13,7 +13,11 @@ def metamap(path,dataset):
 
 
 def main():
-	metamap_path = input("Please enter the path where your metamap binary file is located")
+	configuration_file = open("metamap.cfg","r")
+	configuration_file_contents = configuration_file.read()
+	metamap_path = configuration_file_contents.split("=")[1]
+	configuration_file.close()
+	#metamap_path = input("Please enter the path where your metamap binary file is located")
 	dataset = ['I have Diabetes and I cough a lot', 'John had a huge heart attack']
 	semantic_types = metamap(metamap_path,dataset)
 	print(semantic_types)
