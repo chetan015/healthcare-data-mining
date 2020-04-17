@@ -1,19 +1,11 @@
-import json,ast, metamap
-from textblob import TextBlob
+import json,ast, testmetamap
 from datetime import datetime
 import time
 
-metamapobj = metamap.MyMetaMap()
+metamapobj = testmetamap.MyMetaMap()
 path = metamapobj.metamap_path
 
-'''
-def freshness(timeRes):
-	maxVal = max(timeRes)
-	sf = [val/maxVal for val in timeRes]
-	return sf
-'''
-
-file = open("testdata.jl","r")
+file = open("testdatamedhelp.jl","r")
 file = file.read()
 file = file.split("\n")
 finalString=""
@@ -23,20 +15,36 @@ for obj in file:
 	print("Processing for row %d" % i)
 	dataset = []
 	obj = json.loads(obj)
+	#print(obj['replies'][0]['created'])
+	
+	#print(obj['replies'][0]['created'])
+	#d = datetime.strptime(obj['replies'][0]['created'], "%Y-%m-%d %H:%M:%S%z")
+	#print(d)
+	#time_val = time.mktime(d.timetuple())
+	#print(time_val)
+	#print(obj)
 	totalcontent =obj['content']
-	if obj['replies']:
+	count = len(totalcontent.split(" "))
+	noofexpertreplies=0
+	if obj['numReplies'] > 0:
 		#size = len(obj['replies'])
+		obj['replies'][0]['created'] = obj['replies'][0]['created'].replace("T"," ")
 		size = obj['numReplies']
-		d = datetime.strptime(obj['replies'][size-1]['created'], "%Y/%m/%d")
+		d = datetime.strptime(obj['replies'][size-1]['created'], "%Y-%m-%d %H:%M:%S%z")
 		time_val = time.mktime(d.timetuple())
 		for replies in obj['replies']:
-			totalcontent+=replies['content']
+			if replies[expert] == True:
+				noofexpertreplies+=1
+				totalcontent+=replies['content']
+				count+=len(totalcontent.split(" "))
 	else:
-		d = datetime.strptime(obj['created'], "%Y/%m/%d")
+		noofexpertreplies=0
+		d = datetime.strptime(obj['created'], "%Y-%m-%d %H:%M:%S%z")
 		time_val = time.mktime(d.timetuple())
+
 	totalcontent = totalcontent.encode("ascii", errors="ignore").decode()
 	dataset.append(totalcontent)
-	count = len(totalcontent.split(" "))
+	#count = len(totalcontent.split(" "))
 
 	result = metamapobj.metamap(path,dataset)
 	symptomlist=[]
@@ -60,24 +68,22 @@ for obj in file:
 		if 'bpoc' in val:
 			bodypartlist.append(key)
 
-	obj['timestamp'] = time_val
+	obj['timestamp'] = time_val #timestamp
 	obj['disease'] = diseaselist
 	obj['symptom'] = symptomlist
 	obj['treatment'] = treatmentlist
 	obj['clinicaldrug'] = clinicaldruglist
 	obj['affectedbodypartlist'] = bodypartlist
-	obj['noofexpertreplies'] = obj["numReplies"]
-	obj['lengthofpost'] = count
-	obj['author'] = 1 #since all posts in health24 are replied by doctors
+	obj['noofexpertreplies'] = noofexpertreplies #hotness
+	obj['lengthofpost'] = count #lengthofpost
 	finalString += json.dumps(obj)
 	finalString+="\n"
 	#print(finalString)
 	i+=1
 #sf = freshness(time_list)
-with open("testdatanew.jl","w+") as f:
+with open("testdatamedhelpout.jl","w+") as f:
 	f.write(finalString)
 	f.close()
-
 '''
 with open("testdatanew.jl","r") as f, open("testdatanew.jl","w") as k:
 	f.readlines()
