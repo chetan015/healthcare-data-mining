@@ -68,6 +68,7 @@ for obj in file:
 	obj['affectedbodypartlist'] = bodypartlist
 	obj['noofexpertreplies'] = obj["numReplies"]
 	obj['lengthofpost'] = count
+	obj['author'] = 1 #since all posts in health24 are replied by doctors
 	finalString += json.dumps(obj)
 	finalString+="\n"
 	#print(finalString)
