@@ -89,7 +89,6 @@ class Solr:
         else:
             results = self.solr.search(q="*", rows = self.limit_result)
 
-
     def checkCollection(self):
         r =requests.get(self.core_url + 'admin/cores?action=STATUS&core=' + self.collection)
         response = json.loads(r.content)
@@ -103,10 +102,7 @@ class Solr:
     def tfidf(self, query,defType , fl = "*"):
         
         results = self.solr.search(q=query, fl= fl, rows = self.limit_result, defType = defType)
-            
-        for each in results:
-            print(each["score"])
-        # print(results)
+        
         return results
 
 solr = Solr(core_url = 'http://localhost:8983/solr/', collection = "HealthCare")
