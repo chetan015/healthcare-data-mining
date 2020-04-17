@@ -43,6 +43,7 @@ for obj in file:
 	diseaselist=[]
 	treatmentlist=[]
 	clinicaldruglist=[]
+	bodypartlist =[]
 	for key,val in result.items():
 		if 'dsyn' in val:
 			diseaselist.append(key)
@@ -55,11 +56,16 @@ for obj in file:
 
 		if 'clnd' in val:
 			clinicaldruglist.append(key)
+
+		if 'bpoc' in val:
+			bodypartlist.append(key)
+
 	obj['timestamp'] = time_val
 	obj['disease'] = diseaselist
 	obj['symptom'] = symptomlist
 	obj['treatment'] = treatmentlist
 	obj['clinicaldrug'] = clinicaldruglist
+	obj['affectedbodypartlist'] = bodypartlist
 	obj['noofexpertreplies'] = obj["numReplies"]
 	obj['lengthofpost'] = count
 	finalString += json.dumps(obj)
