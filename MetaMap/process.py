@@ -19,8 +19,8 @@ MM_SEMTYPES_MAP = {
 BATCH_SIZE = 5  # process these many items at once and save
 TIMESTAMP_FORMATS = {
     'health24': '%Y/%m/%d',
-    'medhelp': '%Y/%m/%d',
-    'patient_info': '%Y/%m/%d',
+    'medhelp': '%Y-%m-%d %H:%M:%S%z',
+    'patient_info': '%Y-%m-%d %H:%M:%S%z',
 }
 
 mm = MetaMap.get_instance(METAMAP_PATH)
