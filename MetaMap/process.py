@@ -140,7 +140,7 @@ with open(out_fname, 'w+') as out_file:
             num_processed += 1
             # Add an id if not present; for health24
             if 'id' not in processed_post:
-                processed_post['id'] = num_processed
+                processed_post['id'] = str(num_processed)
             processed_posts.append(json.dumps(processed_post))
             if num_processed % BATCH_SIZE == 0:
                 print('Writing batch #%d to file %s' % (num_processed // BATCH_SIZE, out_fname))
