@@ -1,5 +1,6 @@
 import json
 import os
+import os.path
 import re
 import time
 from datetime import datetime
@@ -23,7 +24,9 @@ TIMESTAMP_FORMATS = {
     'patient_info': '%Y-%m-%d %H:%M:%S%z',
 }
 
+# Metamap instance
 mm = MetaMap.get_instance(METAMAP_PATH)
+# Spacy for tokenizing post to sentences
 nlp = spacy.load('en_core_web_sm')
 
 # Get the forum for which the input file is
@@ -32,6 +35,14 @@ for site in TIMESTAMP_FORMATS.keys():
     if site in INPUT_FILE:
         forum = site
         break
+
+# Load authors for the forum
+authors = None
+in_fname, in_ext = INPUT_FILE.split('.')
+authors_fname = in_fname + '_authors.json'
+if os.path.isfile(authors_fname):
+    with open(authors_fname) as f:
+        authors = json.load(f)
 
 
 def metamap(sentences):
@@ -59,38 +70,50 @@ def parse_timestamp(string):
 
 
 def preprocess_post(post):
-    if post['replies']:
-        post['lastReplyTs'] = parse_timestamp(post['replies'][-1]['created'])
+    replies = post.get('replies', [])
+    if replies:
+        post['lastActivityTs'] = parse_timestamp(replies[-1]['created'])  # last reply time
+    else:
+        post['lastActivityTs'] = parse_timestamp(post['created'])
 
+    # Extract expert replies and max weight for the authors
+    # authorsWeight = Collective weight of authors present in post and replies
     if forum == 'health24':
-        post['expertReplies'] = post['replies']
+        # Since all replies on health24 are from an expert
+        post['expertReplies'] = replies
+        post['numExpertReplies'] = len(post['expertReplies'])
+        post['authorsWeight'] = min(1, post['numExpertReplies'])
+    else:  # We have author info for other 2 websites
+        post['expertReplies'] = []
+        for r in replies:
+            if authors[r['author']]['weight'] == 1:
+                post['expertReplies'].append(r)
+            post['authorsWeight'] = max(post['authorsWeight'], authors[r['author']]['weight'])
+        post['numExpertReplies'] = len(post['expertReplies'])
 
+    post.pop('replies', None)  # Drop replies, only keep expertReplies
     return post
 
 
 def process_post(post):
     post = preprocess_post(post)
 
+    # heading + content + replies
     totalcontent = post['heading'] + '. ' + post['content']
     for reply in post['expertReplies']:
         totalcontent += reply['content']
+
     # To avoid MetaMap errors
-    totalcontent = totalcontent.encode("ascii", errors="ignore").decode()
+    totalcontent = totalcontent.encode('ascii', errors='ignore').decode()
+    post['numWords'] = len(re.findall(r'\w+', totalcontent))  # Count words
+
+    # Do Metamap processing after tokenizing content into sentences
     result = metamap(nlp(totalcontent).sents)
     post.update(result)
 
-    post['lastActivityTs'] = post.get('lastReplyTs', parse_timestamp(post['created']))
-    post['numWords'] = len(re.findall(r'\w+', totalcontent))  # Count words
-    post['replyByDoctor'] = False
-    if forum == 'health24':
-        post['replyByDoctor'] = True  #since all posts in health24 are replied by doctors
-
-    post.pop('replies', None)  # Drop replies, only keep expertReplies
-    post.pop('lastReplyTs', None)
     return post
 
 
-in_fname, in_ext = INPUT_FILE.split('.')
 out_fname = in_fname + '_mm.' + in_ext
 with open(out_fname, 'w+') as out_file:
     with open(INPUT_FILE) as in_file:
@@ -102,8 +125,7 @@ with open(out_fname, 'w+') as out_file:
             processed_posts.append(json.dumps(process_post(post)))
             num_processed += 1
             if num_processed % BATCH_SIZE == 0:
-                print('Writing batch #%d to file %s' %
-                      (num_processed // BATCH_SIZE, out_fname))
+                print('Writing batch #%d to file %s' % (num_processed // BATCH_SIZE, out_fname))
                 # Dump the batch to disk
                 out_file.write('\n'.join(processed_posts))
                 out_file.write('\n')
