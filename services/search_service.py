@@ -54,7 +54,7 @@ class SearchService():
         sh = [val/maxReplies for val in no_of_replies]
         
         #length
-        max_smr = max(tf-idf)
+        max_smr = max(tf_idf)
         max_length = max(lengths)
         length_posts = [((lengths[i]/max_length)*max_smr)for i in range(len(lengths))]
         
