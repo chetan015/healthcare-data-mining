@@ -2,13 +2,12 @@ import json
 import os
 import os.path
 import re
-import time
-from datetime import datetime
-
 import spacy
+import time
+
 from pymetamap import MetaMap
 
-INPUT_FILE = 'health24.jl'  # path to the jsonlines scraped data
+INPUT_FILE = 'medhelp.jl'  # path to the jsonlines scraped data
 METAMAP_PATH = '/home/shatru-u/app/public_mm/bin/metamap'
 MM_SEMTYPES_MAP = {
     'dsyn': 'diseases',
@@ -17,11 +16,11 @@ MM_SEMTYPES_MAP = {
     'clnd': 'drugs',
     'bpoc': 'bodyParts',
 }
-BATCH_SIZE = 5  # process these many items at once and save
+BATCH_SIZE = 50  # process these many items at once and save
 TIMESTAMP_FORMATS = {
     'health24': '%Y/%m/%d',
-    'medhelp': '%Y-%m-%d %H:%M:%S%z',
-    'patient_info': '%Y-%m-%d %H:%M:%S%z',
+    'medhelp': '%Y-%m-%dT%H:%M:%S%z',
+    'patient_info': '%Y-%m-%dT%H:%M%z',
 }
 
 # Metamap instance
@@ -66,7 +65,8 @@ def metamap(sentences):
 
 
 def parse_timestamp(string):
-    return time.mktime(time.strptime(string, TIMESTAMP_FORMATS[forum]))
+    # Replace the last ':' in timezone -06:00 to avoid error on python 3.6
+    return time.mktime(time.strptime(''.join(string.rsplit(':', 1)), TIMESTAMP_FORMATS[forum]))
 
 
 def preprocess_post(post):
@@ -85,6 +85,7 @@ def preprocess_post(post):
         post['authorsWeight'] = min(1, post['numExpertReplies'])
     else:  # We have author info for other 2 websites
         post['expertReplies'] = []
+        post['authorsWeight'] = 0
         for r in replies:
             if authors[r['author']]['weight'] == 1:
                 post['expertReplies'].append(r)
@@ -122,8 +123,12 @@ with open(out_fname, 'w+') as out_file:
         for line in in_file:
             print('Processing post %d' % (num_processed + 1))
             post = json.loads(line)
-            processed_posts.append(json.dumps(process_post(post)))
+            processed_post = process_post(post)
             num_processed += 1
+            # Add an id if not present; for health24
+            if 'id' not in processed_post:
+                processed_post['id'] = num_processed
+            processed_posts.append(json.dumps(processed_post))
             if num_processed % BATCH_SIZE == 0:
                 print('Writing batch #%d to file %s' % (num_processed // BATCH_SIZE, out_fname))
                 # Dump the batch to disk
