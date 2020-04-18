@@ -102,12 +102,16 @@ with open(out_fname, 'w+') as out_file:
             processed_posts.append(json.dumps(process_post(post)))
             num_processed += 1
             if num_processed % BATCH_SIZE == 0:
-                print('Writing batch #%d (%d) to file %s' %
-                      (num_processed // BATCH_SIZE, len(processed_posts), out_fname))
+                print('Writing batch #%d to file %s' %
+                      (num_processed // BATCH_SIZE, out_fname))
                 # Dump the batch to disk
                 out_file.write('\n'.join(processed_posts))
+                out_file.write('\n')
                 # https://docs.python.org/2/library/stdtypes.html#file.flush
                 out_file.flush()
                 os.fsync(out_file)
                 # reset batch
                 processed_posts = []
+
+        # Write the last batch out
+        out_file.write('\n'.join(processed_posts))
