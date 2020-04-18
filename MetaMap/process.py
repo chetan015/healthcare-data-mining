@@ -58,7 +58,9 @@ def metamap(sentences):
             if concept.__class__.__name__ is not 'ConceptAA':
                 for semtype, semname in MM_SEMTYPES_MAP.items():
                     if semtype in concept.semtypes:
-                        result[semname].add(concept.preferred_name)
+                        # Sometimes the diseases come as single string with commas
+                        for name in concept.preferred_name.lower().split(', '):
+                            result[semname].add(name)
     for k in result:
         result[k] = list(result[k])  # convert sets to list
     return result
