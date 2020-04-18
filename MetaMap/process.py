@@ -22,6 +22,11 @@ TIMESTAMP_FORMATS = {
     'medhelp': '%Y-%m-%dT%H:%M:%S%z',
     'patient_info': '%Y-%m-%dT%H:%M%z',
 }
+FINAL_KEYS_IN_OUTPUT = {
+    'id', 'link', 'group', 'author', 'created', 'heading', 'content', 'numReplies',
+    'lastActivityTs', 'expertReplies', 'numExpertReplies', 'authorsWeight', 'numWords', 'diseases',
+    'symptoms', 'treatments', 'drugs', 'bodyParts'
+}
 
 # Metamap instance
 mm = MetaMap.get_instance(METAMAP_PATH)
@@ -113,6 +118,12 @@ def process_post(post):
     # Do Metamap processing after tokenizing content into sentences
     result = metamap(nlp(totalcontent).sents)
     post.update(result)
+
+    # Restrict keys in the output to a fixed set
+    post_keys = list(post.keys())
+    for k in post_keys:
+        if k not in FINAL_KEYS_IN_OUTPUT:
+            post.pop(k, None)
 
     return post
 
