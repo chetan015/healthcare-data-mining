@@ -25,7 +25,7 @@ TIMESTAMP_FORMATS = {
 FINAL_KEYS_IN_OUTPUT = {
     'id', 'link', 'group', 'author', 'created', 'heading', 'content', 'numReplies',
     'lastActivityTs', 'expertReplies', 'numExpertReplies', 'authorsWeight', 'numWords', 'diseases',
-    'symptoms', 'treatments', 'drugs', 'bodyParts'
+    'symptoms', 'treatments', 'drugs', 'bodyParts', 'site'
 }
 
 # Metamap instance
@@ -77,6 +77,7 @@ def parse_timestamp(string):
 
 
 def preprocess_post(post):
+    post['site'] = forum
     replies = post.get('replies', [])
     if replies:
         post['lastActivityTs'] = parse_timestamp(replies[-1]['created'])  # last reply time
