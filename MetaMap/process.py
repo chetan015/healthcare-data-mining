@@ -99,7 +99,7 @@ def process_post(post):
     post = preprocess_post(post)
 
     # heading + content + replies
-    totalcontent = post['heading'] + '. ' + post['content']
+    totalcontent = post['group'] + ': ' + post['heading'] + '. ' + post['content']
     for reply in post['expertReplies']:
         totalcontent += reply['content']
 
