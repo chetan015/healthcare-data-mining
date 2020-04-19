@@ -79,8 +79,11 @@ def metamap(sentences):
 
 
 def get_epoch(ts):
+    # Replace the last ':' in timezone -06:00 to avoid error on python 3.6
+    dtm = dt.strptime(''.join(ts.rsplit(':', 1)), ISO_FORMAT)
     # calendar.timegm to get seconds from UTC epoch
-    return calendar.timegm(dt.strptime(ts, ISO_FORMAT).timetuple())
+    # Python sucks for timezones! Appparently timegm doesn't take into account TZ offset!
+    return calendar.timegm(dtm.timetuple()) - dtm.tzinfo.utcoffset(dtm).seconds
 
 
 # Make sure every timestamp is in same format 2019-11-26T20:36:15-06:00
