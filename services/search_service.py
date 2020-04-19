@@ -68,7 +68,7 @@ class SearchService():
         max_length = max(lengths)
         length_posts = [((lengths[i]/max_length)*max_smr)for i in range(len(lengths))]
         
-        #trusthworthiness
+        #trustworthiness
         st = [(author_weights[i]*max_smr) for i in range(len(author_weights))]
         max_st = max(st)
         st_normalized =[(val/max_st) for val in st]
@@ -80,7 +80,7 @@ class SearchService():
             post['freshness'] = sf[i]
             post['hotness'] = sh[i]
             post['normalized-length'] = length_posts[i]
-            post['trusthworthiness'] = st_normalized[i]
+            post['trustworthiness'] = st_normalized[i]
             post['tf-idf-score'] =tf_idf_normalized[i]
             i+=1
             
