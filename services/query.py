@@ -7,26 +7,48 @@ solr = pysolr.Solr('http://localhost:8983/solr/healthcare', always_commit=True)
 
 # How you'd index data.
 def create():
-    data = []
-    with open('../data/out.jl') as f:
-        for line in f:
-            data.append(json.loads(line))
-            
-    solr.add(data)
+    # solr.add([
+    #             {
+    #                 "id": "doc_1",
+    #                 "title": "A test document",
+    #                 "number": 22387237.0,
+    #             },
+    #             {
+    #                 "id": "doc_2",
+    #                 "title": "The Banana: Tasty or Dangerous?",
+    #                 "number": 3223.0,
+    #             },
+    #         ])
 
-def delete(id):
-    solr.delete(id=[id])
+    # data = []
+    with open('../data/medhelp_mm.jl') as f:
+        for line in f:
+            try:
+                # print([json.loads(line)])
+                # break
+                # data.append(json.loads(line))
+                solr.add([json.loads(line)])
+            # solr.add(line)
+            except Exception as e: 
+                print(e)
+
+    # print(data) 
+    # solr.add(data)
+
+def delete():
+    solr.delete(q='*:*')
 
 def search(term):
     filter_queries = 'content:' + term
     print(filter_queries)
-    results = solr.search(q=filter_queries)
+    results = solr.search(q="*:*")
     print("Saw {0} result(s).".format(len(results)))
     for result in results:
         print(result)
 
-# create()
-search('cancer')
+create()
+# search('cancer')
+# delete()
 
 # You can index a parent/child document relationship by
 # associating a list of child documents with the special key '_doc'. This

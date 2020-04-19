@@ -26,7 +26,8 @@ class Solr:
             data = map(json.loads, data)
             self.solr.add(data)
             # print("Insert Data Successfully")
-        except:
+        except Exception as e:
+            print(e)
             print("Can not insert data to Solr")
             exit(1)
 
@@ -105,7 +106,7 @@ class Solr:
         
         return results
 
-solr = Solr(core_url = 'http://localhost:8983/solr/', collection = "HealthCare")
+solr = Solr(core_url = 'http://localhost:8983/solr/', collection = "healthcare")
 # solr.check()
 # solr.connect()
 # data = '''
@@ -113,5 +114,5 @@ solr = Solr(core_url = 'http://localhost:8983/solr/', collection = "HealthCare")
 # '''
 # solr.insert(data = [data])
 # solr.search()
-# solr.insert(json_filename = 'patient_info.jl')
-solr.tfidf(fl = "score,id", query = "mul(tf(content,health),idf(content,health))", defType = "func")
+solr.insert(json_filename = '../data/medhelp_mm.jl')
+# solr.tfidf(fl = "score,id", query = "mul(tf(content,health),idf(content,health))", defType = "func")

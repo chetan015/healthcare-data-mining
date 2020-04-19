@@ -13,9 +13,9 @@
         var legend_dom = "<div class='card pl-5 pb-4'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>Trustworthiness</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>Hotness</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>Freshness</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>Length</span></div>";
         var posts_dom = "<div class='col-sm-8 card container' id='posts'></div>";
         $('#mainArea').empty();
-        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+legend_dom+"</div"+posts_dom+"</div>");
+        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+legend_dom+"</div>"+posts_dom+"</div>");
         
-        var imgFileNames = ['webmd.png','patient.png','health24.png'];
+        // var imgFileNames = ['webmd.png','patient.png','health24.png'];
         var placeholder = $("#input_disease").attr('placeholder');
         var query_term = $("#input_disease").val();
         var query = "query_term=" + query_term + "&query_type=" + placeholder;
@@ -28,35 +28,39 @@
             type: 'GET',
             success: function(result){
                 console.log(result);
+                // return;
                 // $('#post').html(result);
                 // var json_objects = JSON.parse(result);
                 //drawChart(result[0]);
                 for(var i = 0; i < result.length; i++){
                     // Build the dom for a post, which consists of the image, content and link dom elements
+                    var site = result[i].site;
                     var content = result[i].content;
                     var link = result[i].link;
                     var heading = result[i].heading;
                     var group = result[i].group;
-                    var trustworthiness = result[i].trustworthiness;
+                    var trusthworthiness = result[i].trusthworthiness;
                     var hotness = result[i].hotness;
+                    hotness = Math.round((hotness + Number.EPSILON) * 100) / 100
                     var freshness = result[i].freshness;
+                    freshness = Math.round((freshness + Number.EPSILON) * 100) / 100
                     var length = result[i].length;
-                    var imgFileName = "";
-                    for(i=0;i<3;i++)
-                    {
-                        if(link.contains(imgFileNames[i]))
-                            imgFileName = imgFileNames[i];
-                            break;
-                    }
+                    length = Math.round((length + Number.EPSILON) * 100) / 100
+                    var imgFileName = site + ".png";
                     
-                    var image_dom = "<div class='col-2  my-auto'><img src="+imgFileName+" class='img-fluid' alt='Responsive image'></div>"
-                    var content_dom = "<div class='col-9 pl-4 border-left'><div><h5>"+heading+"</h5><h6><i>"+group+"</i></h6><span>"+cotent+"</span><div class='row justify-content-center'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>"+trustworthiness+"</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>"+hotness+"</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>"+freshness+"</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>"+length+"</span></div></div></div>"
+                    // for(i=0;i<3;i++)
+                    // {
+                    //     if(link.includes(imgFileNames[i]))
+                    //         imgFileName = imgFileNames[i];
+                    //         break;
+                    // }
+
+                    var image_dom = "<div class='col-2  my-auto'><img src='" + imgFileName + "' class='img-fluid' alt='Responsive image'></div>"
+                    var content_dom = "<div class='col-9 pl-4 border-left'><div><h5>" + heading + "</h5><h6><i>" + group + "</i></h6><span>" + content + "</span><div class='row justify-content-center'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>" + trusthworthiness + "</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>" + hotness + "</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>"+freshness+"</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>"+length+"</span></div></div></div>"
                     var link_dom = "<div class='col-1 my-auto'><a href='"+link+"'><i class='fas fa-external-link-alt fa-lg'></i></a></div>"
-                    var post_dom = "<div class = 'row py-3 post border-bottom' id = 'post'"+i+">"+image_dom+content_dom+link_dom+"</div";
+                    var post_dom = "<div class = 'row py-3 post border-bottom' id = 'post"+i+"'>"+image_dom+content_dom+link_dom+"</div";
                     $("#posts").append(post_dom)
-
-
-
+                    // return;
 
                     // var content = result[i].content;
                     // var link = result[i].link;
@@ -102,9 +106,9 @@
         var legend_dom = "<div class='card pl-5 pb-4'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>Trustworthiness</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>Hotness</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>Freshness</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>Length</span></div>";
         var posts_dom = "<div class='col-sm-8 card container' id='posts'></div>";
         $('#mainArea').empty();
-        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+legend_dom+"</div"+posts_dom+"</div>");
+        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+legend_dom+"</div>"+posts_dom+"</div>");
         
-        var imgFileNames = ['webmd.png','patient.png','health24.png'];
+        // var imgFileNames = ['webmd.png','patient.png','health24.png'];
 
         var placeholder = $("#input_symptom").attr('placeholder');
         var query_term = $("#input_symptom").val();
@@ -122,28 +126,34 @@
                 // var json_objects = JSON.parse(result);
                 
                 for(var i = 0; i < result.length; i++){
+                    var site = result[i].site;
                     var content = result[i].content;
                     var link = result[i].link;
                     var heading = result[i].heading;
                     var group = result[i].group;
-                    var trustworthiness = result[i].trustworthiness;
+                    var trusthworthiness = result[i].trusthworthiness;
                     var hotness = result[i].hotness;
+                    hotness = Math.round((hotness + Number.EPSILON) * 100) / 100
                     var freshness = result[i].freshness;
+                    freshness = Math.round((freshness + Number.EPSILON) * 100) / 100
                     var length = result[i].length;
-                    var imgFileName = "";
-                    for(i=0;i<3;i++)
-                    {
-                        if(link.contains(imgFileNames[i]))
-                            imgFileName = imgFileNames[i];
-                            break;
-                    }
-                    
-                    var image_dom = "<div class='col-2  my-auto'><img src="+imgFileName+" class='img-fluid' alt='Responsive image'></div>"
-                    var content_dom = "<div class='col-9 pl-4 border-left'><div><h5>"+heading+"</h5><h6><i>"+group+"</i></h6><span>"+cotent+"</span><div class='row justify-content-center'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>"+trustworthiness+"</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>"+hotness+"</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>"+freshness+"</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>"+length+"</span></div></div></div>"
-                    var link_dom = "<div class='col-1 my-auto'><a href='"+link+"'><i class='fas fa-external-link-alt fa-lg'></i></a></div>"
-                    var post_dom = "<div class = 'row py-3 post border-bottom' id = 'post'"+i+">"+image_dom+content_dom+link_dom+"</div";
-                    $("#posts").append(post_dom)
+                    length = Math.round((length + Number.EPSILON) * 100) / 100
+                    var imgFileName = site + ".png";
 
+                    // var imgFileName = "";
+                    // for(i=0;i<3;i++)
+                    // {
+                    //     if(link.includes(imgFileNames[i]))
+                    //         imgFileName = imgFileNames[i];
+                    //         break;
+                    // }
+                    
+                    var image_dom = "<div class='col-2  my-auto'><img src='" + imgFileName + "' class='img-fluid' alt='Responsive image'></div>"
+                    var content_dom = "<div class='col-9 pl-4 border-left'><div><h5>" + heading + "</h5><h6><i>" + group + "</i></h6><span>" + content + "</span><div class='row justify-content-center'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>" + trusthworthiness + "</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>" + hotness + "</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>"+freshness+"</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>"+length+"</span></div></div></div>"
+                    var link_dom = "<div class='col-1 my-auto'><a href='"+link+"'><i class='fas fa-external-link-alt fa-lg'></i></a></div>"
+                    var post_dom = "<div class = 'row py-3 post border-bottom' id = 'post"+i+"'>"+image_dom+content_dom+link_dom+"</div";
+                    $("#posts").append(post_dom)
+                    // return;
 
                     // var content = result[i].content;
                     // var link = result[i].link;
