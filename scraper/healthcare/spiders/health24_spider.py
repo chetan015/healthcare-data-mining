@@ -101,7 +101,7 @@ class Health24Spider(Spider):
             'group': group_name,
             'author': author if author else 'guest',  # if author was empty
             'created': posted,
-            'heading': post.css('h2:last-of-type::text').get().strip(),
+            'heading': post.css('h2:last-of-type').xpath('string()').get(),
             'content': ' '.join(post.css('p::text').getall()),
             'numReplies': 0
         }
@@ -121,7 +121,7 @@ class Health24Spider(Spider):
                 'author': expert_reply.css('#lnkExpert::text').get(),
                 # ignore leading extra chars
                 'created': created[-10:],
-                'content': ' '.join(expert_reply.css('hgroup+p::text').getall()),
+                'content': ' '.join(response.css('#expertAnswer > p::text').getall()),
             }]
 
         yield item
