@@ -23,15 +23,15 @@ class SearchService():
         result = self.normalize(posts)
         final_scores = []
         for post in result:
-            final_score = 4*post["tf-idf-score"] + 2*post["trustworthiness"] + post["freshness"] + 2*post["hotness"] + post["normalized-length"]
+            final_score = 3.5*post["tf-idf-score"] + 2.25*post["trustworthiness"] + post["freshness"] + 2.5*post["hotness"] + 0.75*post["normalized-length"]
             final_scores.append(final_score)
         print(final_scores)
         max_fs = max(final_scores)
 
         for i in range(len(result)):
-            post[i]["final_score"] = final_scores[i]/max_fs
+            result[i]["final_score"] = final_scores[i]/max_fs
             # i += 1
-            res.append(post)
+            res.append(result[i])
         res = sorted(res, key=lambda x:x['final_score'], reverse = True)
         return res
 
@@ -44,10 +44,10 @@ class SearchService():
         tf_idf = []
         for post in posts:
             post=json.loads(post)
-            time_created.append(post["lastActivityTs"])
-            no_of_replies.append(post['numExpertReplies'])
-            lengths.append(post['numWords'])
-            author_weights.append(post['authorsWeight'])
+            time_created.append(post["lastActivityTs"][0])
+            no_of_replies.append(post['numExpertReplies'][0])
+            lengths.append(post['numWords'][0])
+            author_weights.append(post['authorsWeight'][0])
             posts_.append(post)
             tf_idf.append(posts['score'])
         
