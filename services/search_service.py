@@ -85,3 +85,24 @@ class SearchService():
             i+=1
             
         return posts_
+    
+    def metamap_analysis(self,posts):
+        symptomsdict={}
+        treatmentsdict={}
+        for post in posts:
+            post = json.loads(post)
+            if len(obj['symptoms']) > 0:
+                for symptoms in obj['symptoms']:
+                    if symptoms not in symptomsdict:
+                        symptomsdict[symptoms]=1
+                    else:
+                        symptomsdict[symptoms]+=1
+                    if len(obj['treatments']) > 0:
+
+                for treatments in obj['treatments']:
+                    if treatments not in treatmentsdict:
+                        treatmentsdict[treatments]=1
+                    else:
+                        treatmentsdict[treatments]+=1
+        return symptomsdict,treatmentsdict
+
