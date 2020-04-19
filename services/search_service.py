@@ -24,7 +24,7 @@ class SearchService():
         result = self.normalize(posts)
         final_scores = []
         for post in result:
-            final_score = 4*post["tf-idf-score"] + 2*post["trusthworthiness"] + post["freshness"] + 2*post["hotness"] + post["length"]
+            final_score = 3.5*post["tf-idf-score"] + 2.25*post["trusthworthiness"] + post["freshness"] + 2.5*post["hotness"] + 0.75*post["length"]
             final_scores.append(final_score)
         
         max_fs = max(final_scores)
@@ -69,7 +69,7 @@ class SearchService():
         max_length = max(lengths)
         length_posts = [((lengths[i]/max_length)*max_smr)for i in range(len(lengths))]
         
-        #trusthworthiness
+        #trustworthiness
         st = [(author_weights[i]*max_smr) for i in range(len(author_weights))]
         max_st = max(st)
         st_normalized =[(val/max_st) for val in st]
