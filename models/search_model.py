@@ -3,15 +3,17 @@ import pysolr
 class searchModel():
     def __init__(self):
         # Create a client instance. The timeout and authentication options are not required.
+        self.limit_result = 10
         self.solr = pysolr.Solr('http://localhost:8983/solr/healthcare', always_commit=True)
         
     def fetch(self, query_object):
         results = []
 
-        filter_queries = query_object["query_type"] + ':' + query_object["query_term"]
+        filter_queries = query_object["query_type"] + ':' + query_object["query_term"] + ' OR content:' + query_object["query_term"] + ' OR  heading:' + query_object["query_term"] + ' OR group:' + query_object["query_term"]
+        # filter_queries = '*:' + query_object["query_term"]
         results += self.solr.search(q=filter_queries, **{
                 'fl': '* score'
-            })
+            }, rows = self.limit_result)
 
         # if query_object["q_disease"] and query_object["q_symptom"]:
         #     disease_query = query_object["q_disease"]

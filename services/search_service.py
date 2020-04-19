@@ -14,17 +14,18 @@ class SearchService():
         
     def search(self, queries):
         results = self.search_model.fetch(queries)
-        return results
-        # return self.rank_posts(results)
+        if(len(results) == 0):
+            return []
+        return self.rank_posts(results)
     
     def rank_posts(self, posts):
         res = []
         result = self.normalize(posts)
         final_scores = []
         for post in result:
-            final_score = 3.5*post["tf-idf-score"] + 2.25*post["trustworthiness"] + post["freshness"] + 2.5*post["hotness"] + 0.75*post["normalized-length"]
+            final_score = 3.5*post["tf-idf-score"] + 2.25*post["trusthworthiness"] + post["freshness"] + 2.5*post["hotness"] + 0.75*post["length"]
             final_scores.append(final_score)
-        print(final_scores)
+        
         max_fs = max(final_scores)
 
         for i in range(len(result)):
@@ -41,15 +42,17 @@ class SearchService():
         posts_ = []
         tf_idf = []
         for post in posts:
-            time_created.append(post["lastActivityTs"][0])
-            no_of_replies.append(post['numExpertReplies'][0])
-            lengths.append(post['numWords'][0])
-            author_weights.append(post['authorsWeight'][0])
+            # post = json.loads(post)
+            time_created.extend(post["lastActivityTs"])
+            no_of_replies.extend(post['numExpertReplies'])
+            lengths.extend(post['numWords'])
+            author_weights.extend(post['authorsWeight'])
+            tf_idf.append(post["score"])
             posts_.append(post)
-            tf_idf.append(post['score'])
         
         #freshness
         maxTime = max(time_created)
+        # print(maxTime)
         sf = [val/maxTime for val in time_created]
         
         #hotness
@@ -70,14 +73,12 @@ class SearchService():
         max_st = max(st)
         st_normalized =[(val/max_st) for val in st]
 
-
-
         i = 0
         for post in posts_:
             post['freshness'] = sf[i]
             post['hotness'] = sh[i]
-            post['normalized-length'] = length_posts[i]
-            post['trustworthiness'] = st_normalized[i]
+            post['length'] = length_posts[i]
+            post['trusthworthiness'] = st_normalized[i]
             post['tf-idf-score'] =tf_idf_normalized[i]
             i+=1
             
@@ -87,18 +88,18 @@ class SearchService():
         symptomsdict={}
         treatmentsdict={}
         for post in posts:
-            if len(obj['symptoms']) > 0:
-                for symptoms in obj['symptoms']:
+            # post = json.loads(post)
+            if len(post['symptoms']) > 0:
+                for symptoms in post['symptoms']:
                     if symptoms not in symptomsdict:
-                        symptomsdict[symptoms]=1
+                        symptomsdict[symptoms] = 1
                     else:
-                        symptomsdict[symptoms]+=1
-                    if len(obj['treatments']) > 0:
-
-                for treatments in obj['treatments']:
+                        symptomsdict[symptoms] += 1
+            if len(post['treatments']) > 0:
+                for treatments in post['treatments']:
                     if treatments not in treatmentsdict:
-                        treatmentsdict[treatments]=1
+                        treatmentsdict[treatments] = 1
                     else:
-                        treatmentsdict[treatments]+=1
+                        treatmentsdict[treatments] += 1
         return symptomsdict,treatmentsdict
 
