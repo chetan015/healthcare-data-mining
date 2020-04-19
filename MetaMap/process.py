@@ -1,10 +1,11 @@
+import calendar
 import json
 import os
 import os.path
 import re
 import spacy
-import time
 
+from datetime import datetime as dt
 from pymetamap import MetaMap
 
 INPUT_FILE = 'medhelp.jl'  # path to the jsonlines scraped data
@@ -17,9 +18,10 @@ MM_SEMTYPES_MAP = {
     'bpoc': 'bodyParts',
 }
 BATCH_SIZE = 50  # process these many items at once and save
+ISO_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
 TIMESTAMP_FORMATS = {
-    'health24': '%Y/%m/%d',
-    'medhelp': '%Y-%m-%dT%H:%M:%S%z',
+    'health24': '%Y/%m/%d%z',
+    'medhelp': ISO_FORMAT,
     'patient_info': '%Y-%m-%dT%H:%M%z',
 }
 FINAL_KEYS_IN_OUTPUT = {
@@ -39,6 +41,11 @@ for site in TIMESTAMP_FORMATS.keys():
     if site in INPUT_FILE:
         forum = site
         break
+
+# suffix for timestamp for health24 to add timezone information
+tz_suffix = ''
+if forum == 'health24':
+    tz_suffix = '+00:00'
 
 # Load authors for the forum
 authors = None
@@ -71,23 +78,22 @@ def metamap(sentences):
     return result
 
 
-def parse_timestamp(string):
+def get_epoch(ts):
+    # calendar.timegm to get seconds from UTC epoch
+    return calendar.timegm(dt.strptime(ts, ISO_FORMAT).timetuple())
+
+
+# Make sure every timestamp is in same format 2019-11-26T20:36:15-06:00
+def fix_timestamp(ts):
+    ts = ts + tz_suffix # for health24 to add timezone information
     # Replace the last ':' in timezone -06:00 to avoid error on python 3.6
-    return time.mktime(time.strptime(''.join(string.rsplit(':', 1)), TIMESTAMP_FORMATS[forum]))
-
-
-def fix_health24_timestamp(ts):
-    return time.strftime(TIMESTAMP_FORMATS['patient_info'], time.gmtime(parse_timestamp(ts)))
+    return dt.strptime(''.join(ts.rsplit(':', 1)), TIMESTAMP_FORMATS[forum]).isoformat()
 
 
 def preprocess_post(post):
     post['site'] = forum
-    replies = post.get('replies', [])
-    if replies:
-        post['lastActivityTs'] = parse_timestamp(replies[-1]['created'])  # last reply time
-    else:
-        post['lastActivityTs'] = parse_timestamp(post['created'])
 
+    replies = post.get('replies', [])
     # Extract expert replies and max weight for the authors
     # authorsWeight = Collective weight of authors present in post and replies
     if forum == 'health24':
@@ -95,19 +101,24 @@ def preprocess_post(post):
         post['expertReplies'] = replies
         post['numExpertReplies'] = len(post['expertReplies'])
         post['authorsWeight'] = float(min(1, post['numExpertReplies']))
-
-        # Fix timestamps to match other 2 websites
-        post['created'] = fix_health24_timestamp(post['created'])
-        for r in post['expertReplies']:
-            r['created'] = fix_health24_timestamp(r['created'])
     else:  # We have author info for other 2 websites
         post['expertReplies'] = []
         post['authorsWeight'] = 0.0
         for r in replies:
-            if authors[r['author']]['weight'] == 1:
+            if authors[r['author']]['weight'] == 1.0:
                 post['expertReplies'].append(r)
             post['authorsWeight'] = max(post['authorsWeight'], authors[r['author']]['weight'])
         post['numExpertReplies'] = len(post['expertReplies'])
+
+    # Make sure every timestamp is in the same format 2019-11-26T20:36:15-06:00
+    post['created'] = fix_timestamp(post['created'])
+    for r in post['expertReplies']:
+        r['created'] = fix_timestamp(r['created'])
+
+    if replies:
+        post['lastActivityTs'] = get_epoch(replies[-1]['created'])  # last reply time
+    else:
+        post['lastActivityTs'] = get_epoch(post['created'])
 
     post.pop('replies', None)  # Drop replies, only keep expertReplies
     return post
