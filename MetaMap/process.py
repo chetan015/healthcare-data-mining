@@ -94,7 +94,7 @@ def preprocess_post(post):
         # Since all replies on health24 are from an expert
         post['expertReplies'] = replies
         post['numExpertReplies'] = len(post['expertReplies'])
-        post['authorsWeight'] = min(1, post['numExpertReplies'])
+        post['authorsWeight'] = float(min(1, post['numExpertReplies']))
 
         # Fix timestamps to match other 2 websites
         post['created'] = fix_health24_timestamp(post['created'])
@@ -102,7 +102,7 @@ def preprocess_post(post):
             r['created'] = fix_health24_timestamp(r['created'])
     else:  # We have author info for other 2 websites
         post['expertReplies'] = []
-        post['authorsWeight'] = 0
+        post['authorsWeight'] = 0.0
         for r in replies:
             if authors[r['author']]['weight'] == 1:
                 post['expertReplies'].append(r)
