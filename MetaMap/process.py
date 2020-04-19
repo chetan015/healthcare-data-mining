@@ -76,6 +76,10 @@ def parse_timestamp(string):
     return time.mktime(time.strptime(''.join(string.rsplit(':', 1)), TIMESTAMP_FORMATS[forum]))
 
 
+def fix_health24_timestamp(ts):
+    return time.strftime(TIMESTAMP_FORMATS['patient_info'], time.gmtime(parse_timestamp(ts)))
+
+
 def preprocess_post(post):
     post['site'] = forum
     replies = post.get('replies', [])
@@ -91,6 +95,11 @@ def preprocess_post(post):
         post['expertReplies'] = replies
         post['numExpertReplies'] = len(post['expertReplies'])
         post['authorsWeight'] = min(1, post['numExpertReplies'])
+
+        # Fix timestamps to match other 2 websites
+        post['created'] = fix_health24_timestamp(post['created'])
+        for r in post['expertReplies']:
+            r['created'] = fix_health24_timestamp(r['created'])
     else:  # We have author info for other 2 websites
         post['expertReplies'] = []
         post['authorsWeight'] = 0
