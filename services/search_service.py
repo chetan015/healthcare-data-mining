@@ -19,7 +19,6 @@ class SearchService():
     
     def rank_posts(self, posts):
         res = []
-        # i = 0
         result = self.normalize(posts)
         final_scores = []
         for post in result:
@@ -30,7 +29,6 @@ class SearchService():
 
         for i in range(len(result)):
             result[i]["final_score"] = final_scores[i]/max_fs
-            # i += 1
             res.append(result[i])
         res = sorted(res, key=lambda x:x['final_score'], reverse = True)
         return res
@@ -43,13 +41,12 @@ class SearchService():
         posts_ = []
         tf_idf = []
         for post in posts:
-            post=json.loads(post)
             time_created.append(post["lastActivityTs"][0])
             no_of_replies.append(post['numExpertReplies'][0])
             lengths.append(post['numWords'][0])
             author_weights.append(post['authorsWeight'][0])
             posts_.append(post)
-            tf_idf.append(posts['score'])
+            tf_idf.append(post['score'])
         
         #freshness
         maxTime = max(time_created)
@@ -90,7 +87,6 @@ class SearchService():
         symptomsdict={}
         treatmentsdict={}
         for post in posts:
-            post = json.loads(post)
             if len(obj['symptoms']) > 0:
                 for symptoms in obj['symptoms']:
                     if symptoms not in symptomsdict:
