@@ -42,11 +42,6 @@ for site in TIMESTAMP_FORMATS.keys():
         forum = site
         break
 
-# suffix for timestamp for health24 to add timezone information
-tz_suffix = ''
-if forum == 'health24':
-    tz_suffix = '+00:00'
-
 # Load authors for the forum
 authors = None
 in_fname, in_ext = INPUT_FILE.split('.')
@@ -78,9 +73,14 @@ def metamap(sentences):
     return result
 
 
-def get_epoch(ts):
+def get_datetime(ts, format=TIMESTAMP_FORMATS[forum]):
     # Replace the last ':' in timezone -06:00 to avoid error on python 3.6
-    dtm = dt.strptime(''.join(ts.rsplit(':', 1)), ISO_FORMAT)
+    return dt.strptime(''.join(ts.rsplit(':', 1)), format)
+
+
+def get_epoch(ts):
+    # ISO_FORMAT since post timestamps have already been fixed to ISO format
+    dtm = get_datetime(ts, ISO_FORMAT)
     # calendar.timegm to get seconds from UTC epoch
     # Python sucks for timezones! Appparently timegm doesn't take into account TZ offset!
     return calendar.timegm(dtm.timetuple()) - dtm.tzinfo.utcoffset(dtm).seconds
@@ -88,9 +88,7 @@ def get_epoch(ts):
 
 # Make sure every timestamp is in same format 2019-11-26T20:36:15-06:00
 def fix_timestamp(ts):
-    ts = ts + tz_suffix # for health24 to add timezone information
-    # Replace the last ':' in timezone -06:00 to avoid error on python 3.6
-    return dt.strptime(''.join(ts.rsplit(':', 1)), TIMESTAMP_FORMATS[forum]).isoformat()
+    return get_datetime(ts).isoformat()
 
 
 def preprocess_post(post):
@@ -104,19 +102,21 @@ def preprocess_post(post):
         post['expertReplies'] = replies
         post['numExpertReplies'] = len(post['expertReplies'])
         post['authorsWeight'] = float(min(1, post['numExpertReplies']))
+
+        # Add timezone information so that it can be formatted correctly
+        post['created'] = fix_timestamp(post['created'] + '+00:00')
+        for r in replies:
+            r['created'] = fix_timestamp(r['created'] + '+00:00')
     else:  # We have author info for other 2 websites
+        post['created'] = fix_timestamp(post['created'])
         post['expertReplies'] = []
         post['authorsWeight'] = 0.0
         for r in replies:
             if authors[r['author']]['weight'] == 1.0:
                 post['expertReplies'].append(r)
             post['authorsWeight'] = max(post['authorsWeight'], authors[r['author']]['weight'])
+            r['created'] = fix_timestamp(r['created'])
         post['numExpertReplies'] = len(post['expertReplies'])
-
-    # Make sure every timestamp is in the same format 2019-11-26T20:36:15-06:00
-    post['created'] = fix_timestamp(post['created'])
-    for r in post['expertReplies']:
-        r['created'] = fix_timestamp(r['created'])
 
     if replies:
         post['lastActivityTs'] = get_epoch(replies[-1]['created'])  # last reply time
