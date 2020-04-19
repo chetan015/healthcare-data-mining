@@ -21,9 +21,15 @@ class SearchService():
         res = []
         # i = 0
         result = self.normalize(posts)
+        final_scores = []
         for post in result:
-            final_score = post["score"] + post["trustworthiness"] + post["freshness"] + post["hotness"] + post["normalized-length"]
-            post["final_score"] = final_score
+            final_score = 4*post["tf-idf-score"] + 2*post["trustworthiness"] + post["freshness"] + 2*post["hotness"] + post["normalized-length"]
+            final_scores.append(final_score)
+        print(final_scores)
+        max_fs = max(final_scores)
+
+        for i in range(len(result)):
+            post[i]["final_score"] = final_scores[i]/max_fs
             # i += 1
             res.append(post)
         res = sorted(res, key=lambda x:x['final_score'], reverse = True)
@@ -53,8 +59,12 @@ class SearchService():
         maxReplies = max(no_of_replies)
         sh = [val/maxReplies for val in no_of_replies]
         
-        #length
+        #nomalizing tf-idf
+        
         max_smr = max(tf_idf)
+        tf_idf_normalized = [(tf/max_smr) for tf in tf_idf]
+        
+        #length
         max_length = max(lengths)
         length_posts = [((lengths[i]/max_length)*max_smr)for i in range(len(lengths))]
         
@@ -63,13 +73,15 @@ class SearchService():
         max_st = max(st)
         st_normalized =[(val/max_st) for val in st]
 
-        i = 0
 
+
+        i = 0
         for post in posts_:
             post['freshness'] = sf[i]
             post['hotness'] = sh[i]
             post['normalized-length'] = length_posts[i]
             post['trusthworthiness'] = st_normalized[i]
+            post['tf-idf-score'] =tf_idf_normalized[i]
             i+=1
             
         return posts_
