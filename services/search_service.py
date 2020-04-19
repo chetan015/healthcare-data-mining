@@ -20,7 +20,6 @@ class SearchService():
     
     def rank_posts(self, posts):
         res = []
-
         result = self.normalize(posts)
         final_scores = []
         for post in result:
