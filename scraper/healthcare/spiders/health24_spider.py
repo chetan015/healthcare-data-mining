@@ -79,13 +79,18 @@ class Health24Spider(Spider):
         #     }]
         # }
         data = json.loads(response.text)
+        stop_scraping = False
         for p in data['Results']:
+            if p['PostedOn'].split('/')[-1] < '2012':
+                # Do not scrape posts before 2012 as they seem to have unexpected layout
+                stop_scraping = True
+                break
             yield response.follow(p['QuestionUrl'],
                                   callback=self.parse_post,
                                   cb_kwargs=dict(group_name=group_name))
 
         # Pagination
-        if data['CanLoadMore']:
+        if not stop_scraping and data['CanLoadMore']:
             page = int(re.search(r'&pageNo=(\d+)', response.url).group(1))
             next_url = re.sub(r'&pageNo=(\d+)', f'&pageNo={page+1}', response.url)
             yield response.follow(next_url,
