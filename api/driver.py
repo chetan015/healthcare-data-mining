@@ -33,7 +33,6 @@ def search():
         "query_type": q_type
     }
     temp = search_service.search(query_object)
-    # print(temp)
     return jsonify(temp)
 
 if __name__ == "__main__":

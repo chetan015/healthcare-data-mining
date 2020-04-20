@@ -33,6 +33,7 @@ class SearchService():
             result[i]["final_score"] = final_scores[i]/max_fs
             res.append(result[i])
         res = sorted(res, key=lambda x:x['final_score'], reverse = True)
+        res.append(self.metamap_analysis(res))
         return res
 
     def normalize(self,posts):
@@ -85,22 +86,34 @@ class SearchService():
             
         return posts_
     
-    def metamap_analysis(self,posts):
-        symptomsdict={}
-        treatmentsdict={}
+    def metamap_analysis(self, posts):
+        symptomsdict = {}
+        treatmentsdict = {}
+        symptoms_data = []
+
         for post in posts:
-            # post = json.loads(post)
+            if 'treatments' not in post or 'symptoms' not in post:
+                continue
+
             if len(post['symptoms']) > 0:
-                for symptoms in post['symptoms']:
-                    if symptoms not in symptomsdict:
-                        symptomsdict[symptoms] = 1
+                for symptom in post['symptoms']:
+                    if symptom not in symptomsdict:
+                        symptomsdict[symptom] = 1
                     else:
-                        symptomsdict[symptoms] += 1
+                        symptomsdict[symptom] += 1
+
             if len(post['treatments']) > 0:
-                for treatments in post['treatments']:
-                    if treatments not in treatmentsdict:
-                        treatmentsdict[treatments] = 1
+                for treatment in post['treatments']:
+                    if treatment not in treatmentsdict:
+                        treatmentsdict[treatment] = 1
                     else:
-                        treatmentsdict[treatments] += 1
-        return symptomsdict,treatmentsdict
+                        treatmentsdict[treatment] += 1
+
+        for key in symptomsdict:
+            temp = {}
+            temp['symptom'] = key
+            temp['posts'] = symptomsdict[key]
+            symptoms_data.append(temp)
+
+        return sorted(symptoms_data, key=lambda i:i["posts"], reverse=True)[:3]
 
