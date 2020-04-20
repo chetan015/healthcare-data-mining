@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.13.0/css/all.css">
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <style>
+        .custom-select{
+           max-width: 150px;
+        }
         .icon{
             padding-top:20px;
             padding-right: 12px;
@@ -103,12 +106,24 @@
                 </div>
                 <div class="input-group" id="diseaseSearch">
                     <input id = "input_disease" class="form-control border-success" type="search" placeholder="diseases" aria-label="Search" style="display:block">
+                    <select class="custom-select border-success"id="sourceSelect">
+                        <option selected value="1">All Sources</option>
+                        <option value="2">WebMD</option>
+                        <option value="3">Health24</option>
+                        <option value="4">Patient.Info</option>
+                      </select>
                     <div class="input-group-append">
                         <button id = "btnSubmit_disease" class="btn btn-outline-success"><i class="fas fa-search"></i></button>
                     </div>
                 </div>
                 <div class="input-group" id="symptomSearch" style="display:none">
                     <input id = "input_symptom" class="form-control border-primary" type="search" placeholder="symptoms" aria-label="Search">
+                    <select class="custom-select border-primary"id="sourceSelect">
+                        <option selected value="1">All Sources</option>
+                        <option value="2">WebMD</option>
+                        <option value="3">Health24</option>
+                        <option value="4">Patient.Info</option>
+                      </select>
                     <div class="input-group-append">
                         <button id = "btnSubmit_symptom" class="btn btn-outline-primary"><i class="fas fa-search"></i></button>
                     </div>
