@@ -95,12 +95,12 @@ class Health24Spider(Spider):
     def parse_post(self, response, group_name):
         post = response.css('.focus_block_experts > .expert_content')
         # ? in regex avoid matching trailing spaces greedily in author name
-        author, posted = post.css('h6:last-of-type::text').re(r'Posted by:\s(.*?)\s*\|\s(.*)\s*')
+        author, posted = post.css('h6:last-of-type::text').re(r'Posted by:\s*(.*?)\s*\|\s*(.*)\s*')
         item = {
             'link': response.url,
             'group': group_name,
             'author': author if author else 'guest',  # if author was empty
-            'created': posted,
+            'created': posted.strip()[-10:],
             'heading': post.css('h2:last-of-type').xpath('string()').get(),
             'content': ' '.join(post.css('p::text').getall()),
             'numReplies': 0
@@ -112,16 +112,17 @@ class Health24Spider(Spider):
             # If it is an old post (before 2012), the expert answer doesn't have timestamp
             # It is present in the expert comment below
             if created is None:
-               created = response.css('.user_comments+.expert_content > h6::text').get()
+                created = response.css('.user_comments+.expert_content > h6::text').get()
             # If it is still not present, use the original post's time
             if created is None:
                 created = item['created']
-            item['numReplies'] = 1
+            reply_selector = '#expertAnswer > p::text, #expertAnswer > div:not(.disclaimer_top)::text'
             item['replies'] = [{
                 'author': expert_reply.css('#lnkExpert::text').get(),
                 # ignore leading extra chars
-                'created': created[-10:],
-                'content': ' '.join(response.css('#expertAnswer > p::text').getall()),
+                'created': created.strip()[-10:],
+                'content': ' '.join(response.css(reply_selector).getall()),
             }]
+            item['numReplies'] = 1
 
         yield item
