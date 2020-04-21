@@ -26,11 +26,13 @@ def search():
     # q_term = request.args["query_term"]
     q_term = request.args.get("query_term")
     q_type = request.args.get("query_type")
-    # print(q_term)
+    q_site = request.args.get("query_site")
+
     # q_symptom = request.args.get("symptom")
     query_object = {
         "query_term": q_term,
-        "query_type": q_type
+        "query_type": q_type,
+        "query_site": q_site
     }
     temp = search_service.search(query_object)
     return jsonify(temp)

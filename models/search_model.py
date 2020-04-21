@@ -8,8 +8,13 @@ class searchModel():
         
     def fetch(self, query_object):
         results = []
-
-        filter_queries = query_object["query_type"] + ':' + query_object["query_term"] + ' OR content:' + query_object["query_term"] + ' OR  heading:' + query_object["query_term"] + ' OR group:' + query_object["query_term"]
+        query_type = query_object["query_type"]
+        query_term = query_object["query_term"]
+        query_site = query_object["query_site"]
+        if(query_site is None):
+            filter_queries = query_type + ':' + query_term + ' OR content:' + query_term + ' OR heading:' + query_term + ' OR group:' + query_term
+        else:
+            filter_queries = '(site:' + query_site + ') AND (' + query_type + ':' + query_term + ' OR content:' + query_term + ' OR heading:' + query_term + ' OR group:' + query_term + ')'
         # filter_queries = '*:' + query_object["query_term"]
         results += self.solr.search(q=filter_queries, **{
                 'fl': '* score'
