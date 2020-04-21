@@ -69,7 +69,7 @@
         // var imgFileNames = ['webmd.png','patient.png','health24.png'];
         var placeholder = $("#input_disease").attr('placeholder');
         var query_term = $("#input_disease").val();
-        var site = $('#sourceSelect').val();
+        var site = $('#sourceSelect1').val();
         var query = "query_term=" + query_term + "&query_type=" + placeholder;
         if(site == "2"){
             query += "&query_site=medhelp";
@@ -175,7 +175,15 @@
 
         var placeholder = $("#input_symptom").attr('placeholder');
         var query_term = $("#input_symptom").val();
+        var site = $('#sourceSelect2').val();
         var query = "query_term=" + query_term + "&query_type=" + placeholder;
+        if(site == "2"){
+            query += "&query_site=medhelp";
+        } else if(site == "3"){
+            query += "&query_site=health24";
+        } else if(site == "4"){
+            query += "&query_site=patient_info";
+        }
         $.ajax({
             url: api_url + query,
             crossOrigin: true, 
