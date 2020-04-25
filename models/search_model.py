@@ -15,26 +15,8 @@ class searchModel():
             filter_queries = query_type + ':' + query_term + ' OR content:' + query_term + ' OR heading:' + query_term + ' OR group:' + query_term
         else:
             filter_queries = '(site:' + query_site + ') AND (' + query_type + ':' + query_term + ' OR content:' + query_term + ' OR heading:' + query_term + ' OR group:' + query_term + ')'
-        # filter_queries = '*:' + query_object["query_term"]
+
         results += self.solr.search(q=filter_queries, **{
                 'fl': '* score'
             }, rows = self.limit_result)
-
-        # if query_object["q_disease"] and query_object["q_symptom"]:
-        #     disease_query = query_object["q_disease"]
-        #     symptom_query = query_object["q_symptom"]
-        #     filter_queries = ['Content:' + disease_query, 'Content:' + symptom_query]
-        #     results += self.solr.search(fq=filter_queries)
-
-        # elif query_object["q_disease"]:
-        #     disease_query = query_object["q_disease"]
-        #     filter_queries = ['Content:' + disease_query]
-        #     results += self.solr.search(fq=filter_queries)
-
-        # elif query_object["q_symptom"]:
-        #     symptom_query = query_object["q_symptom"]
-        #     results += self.solr.search(fq=filter_queries)
-
-        # else:
-        #     results += self.solr.search(q="*:*")
         return results

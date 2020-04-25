@@ -1,12 +1,9 @@
 import pysolr
 import json
-
 from os import path
 import sys
 sys.path.append(path.abspath('../models'))
 from search_model import searchModel
-
-# from project.model.search_model import search_model
 
 class SearchService():
     def __init__(self):
@@ -43,7 +40,6 @@ class SearchService():
         posts_ = []
         tf_idf = []
         for post in posts:
-            # post = json.loads(post)
             time_created.extend(post["lastActivityTs"])
             no_of_replies.extend(post['numExpertReplies'])
             lengths.extend(post['numWords'])
@@ -53,7 +49,6 @@ class SearchService():
         
         #freshness
         maxTime = max(time_created)
-        # print(maxTime)
         sf = [val/maxTime for val in time_created]
         
         #hotness
@@ -61,7 +56,6 @@ class SearchService():
         sh = [val/maxReplies for val in no_of_replies]
         
         #nomalizing tf-idf
-        
         max_smr = max(tf_idf)
         tf_idf_normalized = [(tf/max_smr) for tf in tf_idf]
         

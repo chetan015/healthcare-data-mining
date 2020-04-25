@@ -21,7 +21,7 @@ def create():
     #         ])
 
     # data = []
-    with open('../data/medhelp_mm.jl') as f:
+    with open('../data/patient_info_mm.jl') as f:
         for line in f:
             try:
                 # print([json.loads(line)])
