@@ -7,7 +7,7 @@ def pagerank(inversematrix,seed):
 	return np.dot(inversematrix,seed)
 
 
-def main():
+def main(query):
 	Tinfile = open("Tmatrixinversefile","rb")
 	Sinfile = open("symptomsfile","rb")
 	seedfile = open("seedfile","rb")
@@ -15,7 +15,7 @@ def main():
 	symptomlist = pickle.load(Sinfile)
 	seed = pickle.load(seedfile)
 	seed = 0.15*seed
-	query ="nausea"
+	# query ="nausea"
 	index = symptomlist.index(query)
 	seed[index] = 1
 	finalrank = pagerank(inverse,seed)
@@ -29,4 +29,4 @@ def main():
 	#for key,val in sorted_x:
 	#	print(key)
 
-main()
+main("nausea")
