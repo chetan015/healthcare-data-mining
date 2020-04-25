@@ -1,3 +1,13 @@
+function sympgraph(data){
+    // Example Format of Required data = ["Fever","Cough","Cold","Nausea","Pain"]
+    const colorScale = d3.scaleOrdinal()
+            .range(d3.schemeCategory10)
+            .domain(data);
+    margin = 50;
+    var list = d3.select("#sympgraphList").selectAll("li").data(data).enter()
+    .append("li").text(d=>d).style("color",d=>`${colorScale(d)}`);
+    
+}
  function drawChart(data){
     // d3.select("#chartArea").attr("class","container card bg-white");
     const margin = 50;
@@ -62,9 +72,10 @@
         // Set the layout for displaying the visualization, legend and results
         var chart_dom = "<div class='card mb-3' id='chartArea'></div>";
         var legend_dom = "<div class='card pl-5 pb-4'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>Trustworthiness</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>Hotness</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>Freshness</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>Length</span></div>";
+        var sym_dom = "<div class='card p-3 mb-3'><h6>Related Symptoms</h6><ul id='sympgraphList'></ul></div>"
         var posts_dom = "<div class='col-sm-8 card container' id='posts'></div>";
         $('#mainArea').empty();
-        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+legend_dom+"</div>"+posts_dom+"</div>");
+        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+sym_dom+legend_dom+"</div>"+posts_dom+"</div>");
         
         // var imgFileNames = ['webmd.png','patient.png','health24.png'];
         var placeholder = $("#input_disease").attr('placeholder');
@@ -166,10 +177,11 @@
     // symptom query
     $("#btnSubmit_symptom").click(function() {
         var chart_dom = "<div class='card mb-3' id='chartArea'></div>";
+        var sym_dom = "<div class='card p-3 mb-3'><h6>Related Symptoms</h6><ul id='sympgraphList'></ul></div>"
         var legend_dom = "<div class='card pl-5 pb-4'><span class='icon'style='color:#15aabf'><i class='fas fa-user-nurse fa-lg'></i>Trustworthiness</span><br><span class='icon' style='color:#f00c0c'><i class='fab fa-hotjar fa-lg'></i>Hotness</span><br><span class='icon' style='color:#4c6ef5'><i class='far fa-calendar-alt fa-lg'></i>Freshness</span><br><span class='icon' style='color:#f5a320'><i class='fas fa-ruler fa-lg'></i>Length</span></div>";
         var posts_dom = "<div class='col-sm-8 card container' id='posts'></div>";
         $('#mainArea').empty();
-        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+legend_dom+"</div>"+posts_dom+"</div>");
+        $("#mainArea").append("<div class='row'><div class='col-sm-4 pl-0'>"+chart_dom+sym_dom+legend_dom+"</div>"+posts_dom+"</div>");
         
         // var imgFileNames = ['webmd.png','patient.png','health24.png'];
 
