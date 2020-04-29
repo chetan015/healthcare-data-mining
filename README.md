@@ -21,7 +21,7 @@ For the full installation guide from a tar or zip, [refer the official website.]
 
 ## User Interface
 
-![Alt text](arch.png?raw=true "User Interface")
+![Alt text](UI.png?raw=true "User Interface")
 
 ## Starting the Application
 
